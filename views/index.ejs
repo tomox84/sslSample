@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= title %></title>
+    <title><%= dat.title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <h1><%= dat.title %></h1>
+    <p>接続は <%= dat.serverProtocol %>で接続されています</p>
+    <% if(dat.serverProtocol == 'http') { %>
+      <p>/etc/letsencrypt/for-nodejs/ に</p>
+      <p>cert.pem<br>privkey.pem<br>chain.pem<br>fullchain.pem</p>
+      <p>を配置してください</p>
+    <% } %>
+    <p>接続ポートは <%= dat.serverPort %>です</p>
   </body>
 </html>

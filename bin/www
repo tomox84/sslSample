@@ -12,20 +12,58 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+
+var port = normalizePort(process.env.PORT || '3003');
 app.set('port', port);
+
+// -- pemファイルの読み込み
+var ssl
+const dir = '/etc/letsencrypt/for-nodejs/'
+var fs = require('fs')
+try {
+    ssl = {
+      key: fs.readFileSync(dir + 'privkey.pem'),
+      cert: [fs.readFileSync(dir + 'cert.pem')],
+      // 中間CAの設定をしない時はした行をコメントアウト
+      ca:   [fs.readFileSync(dir + 'chain.pem'), fs.readFileSync(dir + 'fullchain.pem')]
+    }
+    console.error("pemを読み込みました")
+} catch (error) {
+    console.error("pemが読み込みできませんでした")
+}
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+//var server = http.createServer(app);
+
+// -- serverの生成（sslのファイルがあるときはhttps、そうでないときはhttp）
+var server
+if(ssl) {
+    server = require('https').createServer(ssl,app) // for use express
+    console.log('https(SSL)で起動します')
+    // 以下SSLの証明書を無視する為
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"   
+    global.serverProtocol = "https"    
+}
+else {
+    server = require('http').createServer(app)    // for use express
+    console.log('httpで起動します')
+    global.serverProtocol = "http"
+}
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+global.serverPort = port
+server.listen(port,function(){
+  console.log('---------------------------------------')
+  console.log('  Started Server...')
+  console.log('  ' + global.serverProtocol + '://localhost: ' + port)
+  console.log('---------------------------------------')
+});
 server.on('error', onError);
 server.on('listening', onListening);
 
